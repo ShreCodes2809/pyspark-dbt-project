@@ -7,59 +7,7 @@ An end-to-end data engineering pipeline built on Databricks using a **Medallion 
 
 ## Architecture Overview
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        SOURCE DATA                              │
-│         6 CSV files (customers, drivers, vehicles,              │
-│              payments, locations, trips)                        │
-└────────────────────────┬────────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    BRONZE LAYER                                 │
-│              Databricks · Spark Structured Streaming            │
-│                                                                 │
-│  • readStream over CSV source files                             │
-│  • Schema inference from batch read                             │
-│  • writeStream to Delta tables (append mode)                    │
-│  • Checkpoint-based fault tolerance                             │
-│  • trigger(once=True) for batch-stream hybrid execution         │
-│                                                                 │
-│  Tables: bronze.customers · bronze.drivers · bronze.vehicles    │
-│          bronze.payments · bronze.locations · bronze.trips      │
-└────────────────────────┬────────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    SILVER LAYER                                 │
-│                  Databricks · PySpark Notebooks                 │
-│                                                                 │
-│  • Modular entity-level transformation notebooks                │
-│  • Data cleaning, type casting, null handling                   │
-│  • Business rule application per entity                         │
-│  • Output written to silver.{entity} Delta tables               │
-│                                                                 │
-│  Tables: silver.customers · silver.drivers · silver.vehicles    │
-│          silver.payments · silver.locations · silver.trips      │
-└────────────────────────┬────────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                     GOLD LAYER                                  │
-│                dbt Cloud · Star Schema Design                   │
-│                                                                 │
-│  FACT TABLE                                                     │
-│  • FactTrips — incremental materialization                      │
-│    watermark deduplication on last_updated_timestamp            │
-│                                                                 │
-│  DIMENSION TABLES (SCD Type 2 Snapshots)                        │
-│  • DimCustomers · DimDrivers · DimVehicles                      │
-│  • DimPayments · DimLocations                                   │
-│    timestamp strategy · dbt_valid_to_current = '9999-12-31'     │
-│                                                                 │
-│  + Custom schema macro · Source-level data lineage YAML         │
-└─────────────────────────────────────────────────────────────────┘
-```
+![Architecture Diagram](images/Architecture_Diagram.png)
 
 ---
 
@@ -208,13 +156,13 @@ A custom Jinja macro overrides dbt's default schema naming behaviour, ensuring G
 
 ### dbt Cloud — All 6 Snapshots Passing (6/6 Pass, 0 Errors)
 
-![dbt Cloud Snapshots](screenshots/pysparkdbt_project_proof.png)
+![dbt Cloud Snapshots](images/pysparkdbt_project_proof.png)
 
 All dimension and fact snapshots ran successfully on the `feature-1` branch, with execution times between 12–49 seconds per model.
 
 ### Databricks Unity Catalog — All Three Layers Materialized
 
-![Databricks Unity Catalog](screenshots/databricks_proof.png)
+![Databricks Unity Catalog](images/databricks_proof.png)
 
 The `pysparkdbt` catalog in Databricks Unity Catalog shows all three schemas (bronze, silver, gold) with their respective tables materialized. The `source_data` schema confirms data lineage tracking via dbt sources.
 
@@ -269,5 +217,4 @@ dbt test      # Validates data quality across models
 ## Author
 
 **Shreyash Sahare**  
-MS Data Science, University of Colorado Boulder  
-[GitHub](https://github.com/ShreCodes2809) · [LinkedIn](https://linkedin.com/in/shreyashsahare)
+MS in Data Science @ University of Colorado Boulder | B.Tech in ECE @ NIT Trichy
