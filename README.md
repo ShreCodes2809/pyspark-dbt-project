@@ -46,7 +46,7 @@ Synthetic Uber rides dataset with 6 related entities simulating a real-world rid
 ## Project Structure
 
 ```
-medallion-etl-databricks/
+pyspark-dbt-project/
 │
 ├── bronze/
 │   └── BRONZE_INGESTION_LAYER.ipynb      # Spark Structured Streaming ingestion
@@ -54,24 +54,21 @@ medallion-etl-databricks/
 ├── silver/
 │   └── SILVER_TRANSFORMATION_LAYER.ipynb # PySpark entity transformations
 │
-├── dbt_project/
+├── gold_dbt_transformations/
 │   ├── dbt_project.yml                   # Project config + materialization settings
 │   │
 │   ├── models/
-│   │   ├── gold/
+│   │   ├── silver/
 │   │   │   └── trips.sql                 # Incremental fact table
-│   │   └── silver/                       # Silver source references
+│   │   └── source/                       
+│   │       └── source.yml            
 │   │
 │   ├── snapshots/
 │   │   ├── SCD.yml                       # SCD Type 2 dimension snapshots (5 dims)
 │   │   └── fact.yml                      # FactTrips snapshot config
 │   │
-│   ├── macros/
-│   │   └── generate_schema_name.sql      # Custom schema name override macro
-│   │
-│   ├── tests/                            # dbt data quality tests
-│   ├── seeds/                            # Seed files
-│   └── analyses/                         # Ad-hoc analyses
+│   └── macros/
+│       └── generate_schema_name.sql      # Custom schema name override macro
 │
 ├── data/
 │   ├── customers.csv
